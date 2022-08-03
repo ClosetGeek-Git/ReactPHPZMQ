@@ -2,10 +2,7 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-use React\EventLoop\LoopInterface;
-use React\EventLoop\ZMQPollLoop;
-use React\EventLoop\Loop;
-
+use React\EventLoop\{Loop, LoopInterface, ZMQPollLoop};
 use \parallel\{Runtime, Future, Channel, Events};
 
 $thread = function()
