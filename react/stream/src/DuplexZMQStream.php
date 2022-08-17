@@ -12,7 +12,6 @@ final class DuplexZMQStream extends EventEmitter implements DuplexStreamInterfac
     public $stream;
     public $loop;
 
-    public $bufferSize;
     public $buffer;
 
     public $data = [];
@@ -37,7 +36,7 @@ final class DuplexZMQStream extends EventEmitter implements DuplexStreamInterfac
 
         $this->stream = $stream;
         $this->loop = $loop ?: Loop::get();
-        $this->bufferSize = ($readChunkSize === null) ? 65536 : (int)$readChunkSize;
+
         $this->buffer = $buffer;
 
         $that = $this;

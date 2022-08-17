@@ -12,10 +12,6 @@ final class WritableZMQStream extends EventEmitter implements WritableStreamInte
 
     public $loop;
 
-    public $softLimit;
-
-    public $writeChunkSize;
-
     public $listening = false;
     public $writable = true;
     public $closed = false;
@@ -30,11 +26,6 @@ final class WritableZMQStream extends EventEmitter implements WritableStreamInte
 
         $this->stream = $stream;
         $this->loop = $loop ?: Loop::get();
-
-        $this->softLimit = ($writeBufferSoftLimit === null) ? 65536 : (int)$writeBufferSoftLimit;
-
-        $this->writeChunkSize = ($writeChunkSize === null) ? -1 : (int)$writeChunkSize;
-
     }
 
     public function isWritable()
@@ -57,8 +48,8 @@ final class WritableZMQStream extends EventEmitter implements WritableStreamInte
 
             $this->loop->addWriteStream($this->stream, array($this, 'handleWrite'));
         }
-
-        return !isset($this->data[$this->softLimit - 1]);
+                
+        return !(count($this->data) > 1000);
     }
 
     public function end($data = null)

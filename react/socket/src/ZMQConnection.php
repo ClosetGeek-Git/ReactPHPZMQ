@@ -19,14 +19,12 @@ class ZMQConnection extends EventEmitter implements ConnectionInterface
 
     public function __construct($resource, LoopInterface $loop)
     {
-        $clearCompleteBuffer = false;
-        $limitWriteChunks = false;
 
         $this->input = new DuplexZMQStream(
             $resource,
             $loop,
-            $clearCompleteBuffer ? -1 : null,
-            new WritableZMQStream($resource, $loop, null, $limitWriteChunks ? 8192 : null)
+            null,
+            new WritableZMQStream($resource, $loop, null, null)
         );
 
         $this->stream = $resource;

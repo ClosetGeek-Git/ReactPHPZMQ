@@ -16,8 +16,6 @@ final class ReadableZMQStream extends EventEmitter implements ReadableStreamInte
     public $data = [];
     public $rcvmore = false;
 
-    public $bufferSize;
-
     public $closed = false;
     public $listening = false;
 
@@ -30,8 +28,6 @@ final class ReadableZMQStream extends EventEmitter implements ReadableStreamInte
 
         $this->stream = $stream;
         $this->loop = $loop ?: Loop::get();
-
-        $this->bufferSize = ($readChunkSize === null) ? 65536 : (int)$readChunkSize;
 
         $this->resume();
     }

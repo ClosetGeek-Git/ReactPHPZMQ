@@ -1,53 +1,5 @@
 <?php
 
-/**
- * FIRST NOTES WHEN DEBUGGING:
- * 
- * NOT SURE IF READS/WRITES SHOULD BE FAIR. THIS PRESUMES THE POLL IS HANDLING ZMQ QUEUES AS WELL AS
- * SOCKETS.
- * 
- * FOR EXAMPLE, in WritableZMQStream\handleWrite()
- * 
- *
- *   public function handleWrite()
- *   {
- *       foreach($this->data as $key => $value)
- *       {
- *           ...
- *
- *           unset($this->data[$key]);
- *           // THIS MAY BE WRONG.... but:
- *           // Not edge triggered so no need to do this in a loop. Break and return when poll signals.
- *           break;
- *       }
- *   }
-
- * 
- * NOT 100% SURE ABOUT THE FOLLOWING LINES:
- *  return ($this->writable && ($this->stream->getSockOpt(ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_OUT)); 
- *   and
- *  return ($this->readable && ($this->stream->getSockOpt(ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_IN));
- * 
- * IN WritableZMQStream:
- *  NOT SURE ABOUT
- *    return ($this->writable && ($this->stream->getSockOpt(ZMQ::SOCKOPT_EVENTS) & ZMQ::POLL_OUT));
- * 
- * Additionally, in write() method changed
- * 
- *   public function write($data)
- *   {
- *       if (!$this->writable)
- * 
- *  INTO
- * 
- *   public function write($data)
- *   {
- *       if (!$this->isWritable())
- *
- *  NOT SURE IF THIS WILL WORK AS EXPECTED
- * 
- */
-
 namespace React\Socket;
 
 use React\EventLoop\Loop;
@@ -136,6 +88,7 @@ final class ZMQConnector implements ConnectorInterface
         try
         {
             $resource = $this->zmq_socket->bind($path);
+            
         } catch(Exception $e)
         {
             return Promise\reject(new \RuntimeException("Unable to bind ZMQ socket: ". $e->getMessage() ));            
