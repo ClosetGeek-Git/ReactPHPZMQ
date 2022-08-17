@@ -1,3 +1,78 @@
+###### update
+Added ZMQ socket based React\Stream and React\Socket implementation. All seems to run well but haven't thoroughly tested.
+
+Bound socket
+```php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+$loop = new React\EventLoop\ZMQPollLoop();
+
+React\EventLoop\Loop::set($loop);
+
+$socket = new React\Socket\ZMQConnector($loop, ["type" => ZMQ::SOCKET_REP]);
+$socket->bind("ipc:///tmp/reactphp")->then(
+    function (React\Socket\ConnectionInterface $connection) 
+    {
+        $connection->on('data', function ($data) use ($connection)
+        {
+            echo "Got data: {$data[0]} \n";
+            $connection->write(["HELLO BACK!!!"]);
+        });
+        
+        $connection->on('error', function (Exception $e)
+        {
+            echo 'error: ' . $e->getMessage();
+        });    
+    },
+    function (Exception $error) 
+    {
+        echo "failed to connect due to {$error} \n";
+    }
+);
+
+React\EventLoop\Loop::run();
+```
+
+Client socket
+```php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+$loop = new React\EventLoop\ZMQPollLoop();
+
+React\EventLoop\Loop::set($loop);
+
+$socket = new React\Socket\ZMQConnector($loop, ["type" => ZMQ::SOCKET_REQ]);
+$socket->connect("ipc:///tmp/reactphp")->then(
+    function (React\Socket\ConnectionInterface $connection)
+    {
+        $connection->on('data', function ($data) use ($connection)
+        {
+            echo "Got data: {$data[0]} \n";
+        });
+        
+        $connection->on('error', function (Exception $e)
+        {
+            echo 'error: ' . $e->getMessage();
+        });    
+    
+        $connection->write(["hello"]);
+    },
+    function (Exception $error) {
+        echo "failed to connect due to {$error} \n";
+    }
+);
+
+React\EventLoop\Loop::run();
+```
+
+Definitly will change.
+
+##Readme
+
 ZMQPoll based LoopInterface for ReactPHP EventLoop. Somewhat faster than default StreamSelect ReactPHP eventloop when operating on standard PHP stream sockets, but also supports first-class level triggered ZMQSockets (see `example.php`). 
 
 Other ZMQ implementations such as [friends-of-reactphp/zmq](https://github.com/friends-of-reactphp/zmq) acquire a ZMQ_FD resource from zmq_getsockopt which is edge triggered and does not represent the internal system socket used within ZMQ's IO loop. The result of it's edge triggered behavior is that events must be handled in a loop such as [here](https://github.com/friends-of-reactphp/zmq/blob/master/src/Buffer.php#L90-L110) and [here](https://github.com/friends-of-reactphp/zmq/blob/master/src/SocketWrapper.php#L63-L81) which blocks other events from being handled by the eventloop. This also interferes with the defined behavior of half ZMQ socket types. 
