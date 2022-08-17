@@ -56,12 +56,12 @@ final class DuplexZMQStream extends EventEmitter implements DuplexStreamInterfac
 
     public function isReadable()
     {
-        return ($this->readable && ($this->stream->getSockOpt(\ZMQ::SOCKOPT_EVENTS) & \ZMQ::POLL_IN)); 
+        return $this->readable; 
     }
 
     public function isWritable()
     {
-        return ($this->writable && ($this->stream->getSockOpt(\ZMQ::SOCKOPT_EVENTS) & \ZMQ::POLL_OUT)); 
+        return $this->writable; 
     }
 
     public function pause()

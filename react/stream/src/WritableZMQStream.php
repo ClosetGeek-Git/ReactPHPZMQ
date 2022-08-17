@@ -30,12 +30,12 @@ final class WritableZMQStream extends EventEmitter implements WritableStreamInte
 
     public function isWritable()
     {
-        return ($this->writable && ($this->stream->getSockOpt(\ZMQ::SOCKOPT_EVENTS) & \ZMQ::POLL_OUT));
+        return $this->writable;
     }
 
     public function write($data)
     {
-        if (!$this->isWritable())
+        if (!$this->writable)
         {
             return false;
         }

@@ -34,7 +34,7 @@ final class ReadableZMQStream extends EventEmitter implements ReadableStreamInte
 
     public function isReadable()
     {
-        return (!$this->closed && ($this->stream->getSockOpt(\ZMQ::SOCKOPT_EVENTS) & \ZMQ::POLL_IN)); 
+        return !$this->closed; 
     }
 
     public function pause()
