@@ -7,7 +7,8 @@ use React\EventLoop\Timer\Timer;
 use React\EventLoop\Timer\Timers;
 
 final class ZMQPollLoop implements LoopInterface{
-    const MS = 1000;
+    const MS  = 1000;
+    const MUS = 1000000;
 
     private $futureTickQueue;
     private $timers;
@@ -19,6 +20,7 @@ final class ZMQPollLoop implements LoopInterface{
     private $pcntl = false;
     private $pcntlPoll = false;
     private $signals;
+    private $resolution = self::MS;
 
     private $zmq_poller = null;
 
@@ -34,6 +36,14 @@ final class ZMQPollLoop implements LoopInterface{
         $this->zmq_poller = new \ZMQPoll();
     }
 
+    public function highResolution($is_highres = true) {
+        if($is_highres) {
+            $this->resolution = self::MUS;
+        }else {
+            $this->resolution = self::MS;
+        }
+    }
+    
     public function addReadStream($stream, $listener) {
         if ($stream instanceof \ZMQSocket) {
             $key = spl_object_hash($stream);
@@ -110,12 +120,18 @@ final class ZMQPollLoop implements LoopInterface{
     }
 
     public function addTimer($interval, $callback) {
+        if($this->resolution == self::MS && $interval < 0.001) {
+            $interval = 0.001;
+        }
         $timer = new Timer($interval, $callback, false);
         $this->timers->add($timer);
         return $timer;
     }
 
     public function addPeriodicTimer($interval, $callback) {
+        if($this->resolution == self::MS && $interval < 0.001) {
+            $interval = 0.001;
+        }
         $timer = new Timer($interval, $callback, true);
         $this->timers->add($timer);
         return $timer;
@@ -163,7 +179,7 @@ final class ZMQPollLoop implements LoopInterface{
                 if ($timeout < 0) {
                     $timeout = 0;
                 } else {
-                    $timeout = intval(($timeout * self::MS));
+                    $timeout = intval(($timeout * $this->resolution));
                 }
             } elseif ($this->readStreams || $this->writeStreams || !$this->signals->isEmpty()) {
                 $timeout = null;
@@ -186,8 +202,11 @@ final class ZMQPollLoop implements LoopInterface{
         $this->running = false;
     }
 
-    private function waitForActivity($timeout) {
+    private function waitForActivity($timeout) {        
         if ($this->readStreams || $this->writeStreams) {
+            if($this->resolution == self::MS && $timeout < 0.001) {
+                $timeout = 0.001;
+            }    
             $read = $write = array();
             $ret = $this->zmq_poller->poll($read, $write, $timeout === null ? -1 : $timeout);
             if ($this->pcntlPoll) {
